@@ -375,6 +375,8 @@ struct common_params {
     std::string ssl_file_key  = "";                                                                         // NOLINT
     std::string ssl_file_cert = "";                                                                         // NOLINT
 
+    bool importance_matrix = false; // enable collecting imatrix
+
     // "advanced" endpoints are disabled by default for better security
     bool webui            = true;
     bool endpoint_slots   = false;

@@ -1528,7 +1528,7 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
             }
             params.in_files.push_back(value);
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"-bf", "--binary-file"}, "FNAME",
         "binary file containing the prompt (default: none)",
@@ -2600,35 +2600,35 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         [](common_params & params, const std::string & value) {
             params.out_file = value;
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_CVECTOR_GENERATOR, LLAMA_EXAMPLE_EXPORT_LORA, LLAMA_EXAMPLE_TTS}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_CVECTOR_GENERATOR, LLAMA_EXAMPLE_EXPORT_LORA, LLAMA_EXAMPLE_TTS, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"-ofreq", "--output-frequency"}, "N",
         string_format("output the imatrix every N iterations (default: %d)", params.n_out_freq),
         [](common_params & params, int value) {
             params.n_out_freq = value;
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--save-frequency"}, "N",
         string_format("save an imatrix copy every N iterations (default: %d)", params.n_save_freq),
         [](common_params & params, int value) {
             params.n_save_freq = value;
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--process-output"},
         string_format("collect data for the output tensor (default: %s)", params.process_output ? "true" : "false"),
         [](common_params & params) {
             params.process_output = true;
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--no-ppl"},
         string_format("do not compute perplexity (default: %s)", params.compute_ppl ? "true" : "false"),
         [](common_params & params) {
             params.compute_ppl = false;
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--chunk", "--from-chunk"}, "N",
         string_format("start processing the input from chunk N (default: %d)", params.i_chunk),
@@ -2642,7 +2642,7 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         [](common_params & params) {
             params.parse_special = true;
         }
-    ).set_examples({LLAMA_EXAMPLE_IMATRIX}));
+    ).set_examples({LLAMA_EXAMPLE_IMATRIX, LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"-pps"},
         string_format("is the prompt shared across parallel sequences (default: %s)", params.is_pp_shared ? "true" : "false"),
@@ -3342,6 +3342,14 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
             params.n_ctx = 0;
             params.n_cache_reuse = 256;
         }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+
+    add_opt(common_arg(
+    {"--imatrix"},
+    string_format("enable collecting imatrix (default: %s)", params.importance_matrix ? "enabled" : "disabled"),
+    [](common_params & params) {
+        params.importance_matrix = true;
+    }
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
 
     return ctx_arg;

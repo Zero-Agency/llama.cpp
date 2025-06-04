@@ -8,6 +8,7 @@
 #include "sampling.h"
 #include "speculative.h"
 #include "mtmd.h"
+#include "imatrix.h"
 
 // Change JSON_ASSERT from assert() to GGML_ASSERT:
 #define JSON_ASSERT GGML_ASSERT
@@ -3639,6 +3640,12 @@ static void log_server_request(const httplib::Request & req, const httplib::Resp
     SRV_DBG("response: %s\n", res.body.c_str());
 }
 
+static IMatrixCollector g_collector;
+
+static bool ik_collect_imatrix(struct ggml_tensor * t, bool ask, void * user_data) {
+    return g_collector.collect_imatrix(t, ask, user_data);
+}
+
 std::function<void(int)> shutdown_handler;
 std::atomic_flag is_terminating = ATOMIC_FLAG_INIT;
 
@@ -3657,6 +3664,10 @@ int main(int argc, char ** argv) {
     // own arguments required by this example
     common_params params;
 
+    if (params.importance_matrix) {
+        params.out_file = "imatrix.dat";
+    }
+
     if (!common_params_parse(argc, argv, params, LLAMA_EXAMPLE_SERVER)) {
         return 1;
     }
@@ -3666,8 +3677,30 @@ int main(int argc, char ** argv) {
     // struct that contains llama context and inference
     server_context ctx_server;
 
+    if (params.importance_matrix) {
+        g_collector.set_params(params);
+
+        for (const auto & in_file : params.in_files) {
+            LOG_INF("%s : loading imatrix from '%s'\n", __func__, in_file.c_str());
+            if (!g_collector.load_imatrix(in_file.c_str())) {
+                LOG_ERR("%s : failed to load %s\n", __func__, in_file.c_str());
+                return 1;
+            }
+        }
+
+        if (params.in_files.size() > 1) {
+            LOG_INF("%s : saving combined imatrix to '%s'\n", __func__, params.out_file.c_str());
+            g_collector.save_imatrix();
+        }
+    }
+
     llama_backend_init();
     llama_numa_init(params.numa);
+
+    if (params.importance_matrix) {
+        params.cb_eval           = ik_collect_imatrix;
+        params.cb_eval_user_data = NULL;
+    }
 
     LOG_INF("system info: n_threads = %d, n_threads_batch = %d, total_threads = %d\n", params.cpuparams.n_threads, params.cpuparams_batch.n_threads, std::thread::hardware_concurrency());
     LOG_INF("\n");
