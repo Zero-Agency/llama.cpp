@@ -3664,12 +3664,12 @@ int main(int argc, char ** argv) {
     // own arguments required by this example
     common_params params;
 
-    if (params.importance_matrix) {
-        params.out_file = "imatrix.dat";
-    }
-
     if (!common_params_parse(argc, argv, params, LLAMA_EXAMPLE_SERVER)) {
         return 1;
+    }
+
+    if (params.importance_matrix && params.out_file.empty()) {
+        params.out_file = "imatrix.dat";
     }
 
     common_init();
